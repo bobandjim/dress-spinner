@@ -194,7 +194,7 @@
 
         let spinCount = 0;
         let isSpinning = false;
-        let currentRotation = 0;
+        let currentRotation = -18; // Start with slice 1 centered at top (offset by half slice angle)
         let sliceImages = {};
         const riggedSlice = 5; // Third spin always lands on slice 5
 
@@ -257,6 +257,9 @@
         }
 
         createWheel();
+        
+        // Set initial rotation so slice 1 is centered at the top
+        wheel.style.transform = `rotate(${currentRotation}deg)`;
 
         // Spin function
         spinBtn.addEventListener('click', function() {
