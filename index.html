@@ -67,8 +67,6 @@
             align-items: flex-start;
             justify-content: center;
             padding-top: 80px;
-            background-size: contain;
-            background-position: center top;
             background-repeat: no-repeat;
         }
 
@@ -271,23 +269,32 @@
 
             let targetSlice;
             
-            // Check if this is the third spin
-            if (spinCount === 3) {
-                targetSlice = riggedSlice;
+            // Check if this is the third spin (or 6th, 9th, etc.)
+            if (spinCount % 3 === 0) {
+                targetSlice = riggedSlice; // Always slice 5
             } else {
                 targetSlice = Math.floor(Math.random() * 10) + 1;
             }
 
             // Calculate rotation
-            const sliceAngle = 360 / 10;
+            const sliceAngle = 360 / 10; // 36 degrees per slice
             const baseRotation = 360 * 5; // 5 full spins
             
-            // Calculate where the slice should stop at the top (arrow position)
-            // The arrow points down, so we need the slice center to align with top
-            const sliceCenter = (targetSlice - 1) * sliceAngle + (sliceAngle / 2);
-            const targetRotation = baseRotation + (360 - sliceCenter);
+            // Calculate the angle for the target slice
+            // Slice 1 starts at 0°, Slice 2 at 36°, etc.
+            // We want the CENTER of the target slice to be at the top (under the arrow)
+            // The arrow points down from the top, so we need the slice center at 270° (top of circle)
+            const sliceStartAngle = (targetSlice - 1) * sliceAngle;
+            const sliceCenterAngle = sliceStartAngle + (sliceAngle / 2);
             
-            currentRotation += targetRotation;
+            // We need to rotate so that sliceCenterAngle ends up at 270° (top)
+            // Since we're rotating the wheel, we rotate in the opposite direction
+            const targetAngle = 270 - sliceCenterAngle;
+            
+            // Add the base rotation and normalize
+            const totalRotation = baseRotation + targetAngle;
+            
+            currentRotation += totalRotation;
             wheel.style.transform = `rotate(${currentRotation}deg)`;
 
             // Show winning image after spin
