@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Spinner Wheel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto 30px;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            border: 8px solid #fff;
+        }
+
+        .slice {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 50% 0%, 55% 0%);
+            transform-origin: 50% 50%;
+        }
+
+        .slice-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .slice img {
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .arrow {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #ff4444;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+            z-index: 10;
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+
+        #spinBtn {
+            padding: 15px 40px;
+            font-size: 1.3em;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        #spinBtn:hover:not(:disabled) {
+            background: #ff6666;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.4);
+        }
+
+        #spinBtn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+
+
+        .winning-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .winning-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            animation: zoomIn 1s ease-out;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .info {
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Custom Spinner Wheel</h1>
+        
+        <div class="wheel-container">
+            <div class="arrow"></div>
+            <div id="wheel"></div>
+            <div class="center-circle"></div>
+        </div>
+
+        <button id="spinBtn">SPIN THE WHEEL!</button>
+        
+        <p class="info">Spin count: <span id="spinCount">0</span> | Third spin always lands on slice 5!</p>
+    </div>
+
+    <div class="winning-overlay" id="overlay">
+        <img class="winning-image" id="winningImage" alt="Winner!">
+    </div>
+
+    <script>
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
+            '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
+            '#F8B88B', '#ABEBC6'
+        ];
+
+        let spinCount = 0;
+        let isSpinning = false;
+        let currentRotation = 0;
+        let sliceImages = {};
+        const riggedSlice = 5; // Third spin always lands on slice 5
+
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const spinCountDisplay = document.getElementById('spinCount');
+        const overlay = document.getElementById('overlay');
+        const winningImage = document.getElementById('winningImage');
+
+        // Load images from the images folder
+        // Images should be named IMG_001.WEBP through IMG_010.WEBP
+        function loadImages() {
+            for (let i = 1; i <= 10; i++) {
+                const paddedNum = String(i).padStart(3, '0');
+                sliceImages[i] = `images/IMG_${paddedNum}.WEBP`;
+            }
+        }
+
+        loadImages();
+
+        // Initialize wheel
+        function createWheel() {
+            wheel.innerHTML = '';
+            const sliceAngle = 360 / 10;
+
+            for (let i = 0; i < 10; i++) {
+                const slice = document.createElement('div');
+                slice.className = 'slice';
+                
+                // Create triangular wedge using clip-path
+                const startAngle = i * sliceAngle;
+                const endAngle = (i + 1) * sliceAngle;
+                
+                // Calculate points for triangular wedge
+                const startRad = (startAngle - 90) * Math.PI / 180;
+                const endRad = (endAngle - 90) * Math.PI / 180;
+                
+                const startX = 50 + 50 * Math.cos(startRad);
+                const startY = 50 + 50 * Math.sin(startRad);
+                const endX = 50 + 50 * Math.cos(endRad);
+                const endY = 50 + 50 * Math.sin(endRad);
+                
+                slice.style.clipPath = `polygon(50% 50%, ${startX}% ${startY}%, ${endX}% ${endY}%)`;
+                
+                const sliceContent = document.createElement('div');
+                sliceContent.className = 'slice-content';
+                sliceContent.style.background = colors[i];
+                sliceContent.style.transform = `rotate(${i * sliceAngle + sliceAngle / 2}deg)`;
+                
+                if (sliceImages[i + 1]) {
+                    sliceContent.style.backgroundImage = `url(${sliceImages[i + 1]})`;
+                } else {
+                    sliceContent.innerHTML = `<span style="font-size: 2em; color: white; font-weight: bold;">${i + 1}</span>`;
+                }
+                
+                slice.appendChild(sliceContent);
+                wheel.appendChild(slice);
+            }
+        }
+
+        createWheel();
+
+        // Spin function
+        spinBtn.addEventListener('click', function() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinCount++;
+            spinCountDisplay.textContent = spinCount;
+
+            let targetSlice;
+            
+            // Check if this is the third spin
+            if (spinCount === 3) {
+                targetSlice = riggedSlice;
+            } else {
+                targetSlice = Math.floor(Math.random() * 10) + 1;
+            }
+
+            // Calculate rotation
+            const sliceAngle = 360 / 10;
+            const baseRotation = 360 * 5; // 5 full spins
+            
+            // Calculate where the slice should stop at the top (arrow position)
+            // The arrow points down, so we need the slice center to align with top
+            const sliceCenter = (targetSlice - 1) * sliceAngle + (sliceAngle / 2);
+            const targetRotation = baseRotation + (360 - sliceCenter);
+            
+            currentRotation += targetRotation;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            // Show winning image after spin
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                
+                // Show overlay with winning image
+                winningImage.src = sliceImages[targetSlice];
+                overlay.style.display = 'flex';
+                
+                // Hide overlay on click
+                overlay.onclick = function() {
+                    overlay.style.display = 'none';
+                };
+            }, 4000);
+        });
+
+        // Close overlay on click
+        overlay.addEventListener('click', function() {
+            this.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
