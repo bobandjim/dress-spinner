@@ -67,15 +67,14 @@
             align-items: flex-start;
             justify-content: center;
             padding-top: 80px;
-            background-size: cover;
-            background-position: center;
+            background-size: contain;
+            background-position: center top;
             background-repeat: no-repeat;
         }
 
-        .slice img {
-            max-width: 80px;
-            max-height: 80px;
-            object-fit: contain;
+        .slice-content span {
+            position: relative;
+            z-index: 1;
         }
 
         .arrow {
@@ -247,10 +246,11 @@
                 sliceContent.style.background = colors[i];
                 sliceContent.style.transform = `rotate(${i * sliceAngle + sliceAngle / 2}deg)`;
                 
+                // Set background image if available
                 if (sliceImages[i + 1]) {
                     sliceContent.style.backgroundImage = `url(${sliceImages[i + 1]})`;
-                } else {
-                    sliceContent.innerHTML = `<span style="font-size: 2em; color: white; font-weight: bold;">${i + 1}</span>`;
+                    sliceContent.style.backgroundSize = '120px auto'; // Scale thumbnail to fit nicely
+                    sliceContent.style.backgroundPosition = 'center 60px'; // Position it in the slice
                 }
                 
                 slice.appendChild(sliceContent);
