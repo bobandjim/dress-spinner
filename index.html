@@ -283,14 +283,23 @@
             const sliceAngle = 360 / 10; // 36 degrees per slice
             const baseRotation = 360 * 5; // 5 full spins
             
-            // The wheel is initially positioned with slice 1 starting at the top (0°)
-            // We want the CENTER of the target slice to align with the arrow at the top
-            // Slice centers are at: slice 1 = 18°, slice 2 = 54°, slice 3 = 90°, etc.
+            // Calculate where the center of the target slice is located
+            // Slice 1 center = 18°, Slice 2 center = 54°, etc.
             const sliceCenterAngle = (targetSlice - 1) * sliceAngle + (sliceAngle / 2);
             
-            // We need to rotate the wheel so that the target slice center ends up at 0° (top)
-            // Since the wheel rotates clockwise, we subtract the slice center angle
-            const rotationNeeded = 360 - sliceCenterAngle;
+            // We want to rotate so the slice center ends up at -18° (our "top" position)
+            // Current wheel position modulo 360 to find where we are in the circle
+            const currentPosition = currentRotation % 360;
+            
+            // Calculate the difference between where we are and where we want to be
+            // We want the slice center to be at -18° (or equivalently, 342°)
+            const targetPosition = -18;
+            let rotationNeeded = targetPosition - sliceCenterAngle;
+            
+            // Normalize to ensure we always rotate forward (positive direction)
+            while (rotationNeeded <= 0) {
+                rotationNeeded += 360;
+            }
             
             // Add base rotation for the spinning effect
             const totalRotation = baseRotation + rotationNeeded;
