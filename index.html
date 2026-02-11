@@ -251,6 +251,19 @@
                     sliceContent.style.backgroundPosition = 'center 60px'; // Position it in the slice
                 }
                 
+                // Add slice number for debugging
+                const sliceNumber = document.createElement('div');
+                sliceNumber.style.position = 'absolute';
+                sliceNumber.style.top = '20px';
+                sliceNumber.style.left = '50%';
+                sliceNumber.style.transform = 'translateX(-50%)';
+                sliceNumber.style.color = 'white';
+                sliceNumber.style.fontWeight = 'bold';
+                sliceNumber.style.fontSize = '20px';
+                sliceNumber.style.textShadow = '2px 2px 4px black';
+                sliceNumber.textContent = i + 1;
+                sliceContent.appendChild(sliceNumber);
+                
                 slice.appendChild(sliceContent);
                 wheel.appendChild(slice);
             }
@@ -306,6 +319,14 @@
             
             currentRotation += totalRotation;
             wheel.style.transform = `rotate(${currentRotation}deg)`;
+            
+            // Debug logging
+            console.log('Target Slice:', targetSlice);
+            console.log('Slice Center Angle:', sliceCenterAngle);
+            console.log('Rotation Needed:', rotationNeeded);
+            console.log('Total Rotation:', totalRotation);
+            console.log('Final Rotation:', currentRotation);
+            console.log('Image URL:', sliceImages[targetSlice]);
 
             // Show winning image after spin
             setTimeout(() => {
