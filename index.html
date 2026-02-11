@@ -194,7 +194,10 @@
 
         let spinCount = 0;
         let isSpinning = false;
-        let currentRotation = -18; // Start with slice 1 centered at top (offset by half slice angle)
+        // Slices are created with -90° offset, so Slice 3 is at top initially
+        // We want Slice 1 at top, so we need to rotate back by 2 slices = -72°
+        // Plus the -18° centering offset = -90° total
+        let currentRotation = -90; // Start with slice 1 centered at top
         let sliceImages = {};
         const riggedSlice = 5; // Third spin always lands on slice 5
 
@@ -273,6 +276,15 @@
         
         // Set initial rotation so slice 1 is centered at the top
         wheel.style.transform = `rotate(${currentRotation}deg)`;
+        
+        console.log('=== WHEEL INITIALIZATION ===');
+        console.log('Initial rotation:', currentRotation);
+        console.log('Slice layout (i, slice number, start angle):');
+        for (let i = 0; i < 10; i++) {
+            const startAngle = i * 36 - 90;
+            const centerAngle = startAngle + 18;
+            console.log(`i=${i}, Slice ${i+1}, starts at ${startAngle}°, center at ${centerAngle}°`);
+        }
 
         // Spin function
         spinBtn.addEventListener('click', function() {
@@ -297,16 +309,15 @@
             const baseRotation = 360 * 5; // 5 full spins
             
             // Calculate where the center of the target slice is located
-            // Slice 1 center = 18°, Slice 2 center = 54°, etc.
-            const sliceCenterAngle = (targetSlice - 1) * sliceAngle + (sliceAngle / 2);
+            // Slices are created with a -90° offset in the clip-path calculation
+            // Slice 1 (i=0): clip-path from -90° to -54°, center at -72°
+            // Slice 2 (i=1): clip-path from -54° to -18°, center at -36°
+            // Slice 3 (i=2): clip-path from -18° to 18°, center at 0°
+            // etc.
+            const sliceCenterAngle = (targetSlice - 1) * sliceAngle - 90 + (sliceAngle / 2);
             
-            // We want to rotate so the slice center ends up at -18° (our "top" position)
-            // Current wheel position modulo 360 to find where we are in the circle
-            const currentPosition = currentRotation % 360;
-            
-            // Calculate the difference between where we are and where we want to be
-            // We want the slice center to be at -18° (or equivalently, 342°)
-            const targetPosition = -18;
+            // We want to rotate so the slice center ends up at -90° (our "top" position)
+            const targetPosition = -90;
             let rotationNeeded = targetPosition - sliceCenterAngle;
             
             // Normalize to ensure we always rotate forward (positive direction)
