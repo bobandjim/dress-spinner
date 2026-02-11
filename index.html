@@ -313,10 +313,38 @@
             let additionalRotation;
             
             if (spinCount % 3 === 0) {
-                // Rigged spin - land exactly on center of slice 5
-                // Slice 5 center is at: (5-1) * 36 - 90 + 18 = 72°
-                // We want it at -90° (top), so rotate by: -90 - 72 = -162° (or +198°)
-                additionalRotation = 198; // This will put slice 5 at top
+                // RIGGED SPIN - Calculate distance from current position to slice 5
+                
+                // First, normalize current rotation to 0-360 range
+                const normalizedCurrentRotation = ((currentRotation % 360) + 360) % 360;
+                
+                // Slice 5's center position in the wheel (before any rotation)
+                // Slice 5 (i=4): center at (4 * 36 - 90 + 18) = 72°
+                const slice5CenterAngle = 72;
+                
+                // We want slice 5's center to end up at -90° (top position)
+                // Current position of slice 5 after all previous rotations
+                const slice5CurrentPosition = (slice5CenterAngle + normalizedCurrentRotation) % 360;
+                
+                // Target position for slice 5 center (top of wheel)
+                const targetTopPosition = 270; // -90° = 270° in normalized form
+                
+                // Calculate shortest distance to rotate slice 5 to the top
+                let distanceToSlice5 = targetTopPosition - slice5CurrentPosition;
+                
+                // Ensure we rotate forward (positive direction)
+                if (distanceToSlice5 < 0) {
+                    distanceToSlice5 += 360;
+                }
+                
+                // Total rotation = 5 full spins + exact distance to slice 5
+                additionalRotation = distanceToSlice5;
+                
+                console.log('=== RIGGED SPIN (Spin #' + spinCount + ') ===');
+                console.log('Current normalized rotation:', normalizedCurrentRotation);
+                console.log('Slice 5 current position:', slice5CurrentPosition);
+                console.log('Distance to rotate to land on Slice 5:', distanceToSlice5);
+                
             } else {
                 // Random spin - pick a random slice and add random offset within that slice
                 // Each slice spans 36°, we'll randomize within +/- 15° of center for variety
@@ -342,8 +370,8 @@
             // Debug logging
             console.log('Target Slice:', targetSlice);
             console.log('Additional Rotation:', additionalRotation);
-            console.log('Total Rotation:', totalRotation);
-            console.log('Current Rotation:', currentRotation);
+            console.log('Total Rotation (5 spins + distance):', totalRotation);
+            console.log('New Current Rotation:', currentRotation);
             
             // After spinning, calculate which slice actually landed at the top
             setTimeout(() => {
